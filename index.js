@@ -25,6 +25,6 @@ app.use((error, req, res, next) => {
 	});
 });
 
-app.listen(3001, () => {
+app.listen(process.env.PORT || 5000, () => {
 	console.log('Server started!');
 });
