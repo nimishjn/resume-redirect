@@ -1,0 +1,19 @@
+{
+  "name": "resume-redirect",
+  "version": "1.0.0",
+  "description": "Backend Redirect for resume",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nimishjn/resume-redirect.git"
+  },
+  "author": "Nimish Jain",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/nimishjn/resume-redirect/issues"
+  },
+  "homepage": "https://github.com/nimishjn/resume-redirect#readme"
+}
