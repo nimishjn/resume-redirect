@@ -20,13 +20,13 @@ export default function Home() {
 	);
 }
 
-export async function getStaticProps(context) {
+export async function getServerSideProps(context) {
 	const date = new Date();
-	console.log(
-		'Resume fetched at',
-		date.toLocaleString(),
-		date.getTimezoneOffset()
-	);
+	console.log({
+		time: date.toString(),
+		source: context.query.src || 'Unknown',
+		allQueryParams: { ...context.query },
+	});
 	return {
 		redirect: {
 			destination:
@@ -34,5 +34,6 @@ export async function getStaticProps(context) {
 				'https://drive.google.com/uc?export=view&id=1Tg31PggA8KJE4EIhHue5fIBz3qskzfgF',
 			permanent: false,
 		},
+		props: {},
 	};
 }
