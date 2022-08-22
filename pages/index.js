@@ -23,7 +23,7 @@ export default function Home() {
 export async function getServerSideProps(context) {
 	const date = new Date();
 	console.log({
-		time: date.toString(),
+		time: date.toLocaleString("en-IN", {timeZone: 'Asia/Kolkata'}),
 		source: context.query.src || 'Unknown',
 		allQueryParams: { ...context.query },
 	});
