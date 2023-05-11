@@ -1,48 +1,82 @@
 import { MongoClient } from 'mongodb';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function Logs({ logs }) {
 	const [searchTerm, setSearchTerm] = useState('');
+	const [startTime, setStartTime] = useState('');
+	const [endTime, setEndTime] = useState('');
+	const [filteredLogs, setFilteredLogs] = useState(logs);
 
-	const handleSearch = (event) => {
-		setSearchTerm(event.target.value);
+	const filterLogs = () => {
+		const newLogs = logs.filter((log) => {
+			if (!searchTerm) return true;
+
+			const sourceMatches = log.source
+				?.toString()
+				.toLowerCase()
+				.includes(searchTerm.toLowerCase());
+
+			if (!startTime || !endTime) return sourceMatches;
+			const log_time = new Date(log.timestamp).getTime();
+			const startTime_time = new Date(startTime).getTime();
+			const endTime_time = new Date(endTime).getTime();
+
+			const withinTimeRange =
+				log_time >= startTime_time && log_time <= endTime_time;
+
+			return sourceMatches && withinTimeRange;
+		});
+		setFilteredLogs(newLogs);
 	};
-
-	const filteredLogs = logs.filter((log) => {
-		if (!log.source || !log.time) return true;
-		const nameMatches = log.source
-			.toLowerCase()
-			.includes(searchTerm.toLowerCase());
-		const timestampMatches = log.time
-			.toLowerCase()
-			.includes(searchTerm.toLowerCase());
-		return nameMatches || timestampMatches;
-	});
 
 	return (
 		<div className='min-w-full mx-auto py-6 sm:px-6 lg:px-8'>
 			<div className='flex flex-col'>
 				<div className='-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8'>
 					<div className='py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8'>
-						<div className='shadow overflow-hidden border-b border-gray-200 sm:rounded-lg'>
-							<div className='flex flex-col mb-4'>
-								<div className='w-full md:w-1/3 mb-4 md:mb-0'>
-									<label
-										className='block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2'
-										htmlFor='search'
-									>
-										Search
-									</label>
+						<div className='p-4 md:p-0'>
+							<div className='sticky top-0 flex flex-col items-stretch justify-center mb-4'>
+								<div className='flex items-center mb-4'>
+									<label className='mr-2'>Keywords:</label>
 									<input
-										className='appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white'
-										id='search'
+										className='px-2 py-1 border border-gray-400 rounded flex-grow'
 										type='text'
-										placeholder='Search logs'
-										onChange={handleSearch}
+										placeholder='Search by name or message'
+										value={searchTerm}
+										onChange={(event) =>
+											setSearchTerm(event.target.value)
+										}
 									/>
 								</div>
+
+								<div className='flex items-center mb-4'>
+									<label className='mr-2'>Time Range:</label>
+									<input
+										className='px-2 py-1 border border-gray-400 rounded mr-2 flex-grow'
+										type='datetime-local'
+										value={startTime}
+										onChange={(event) =>
+											setStartTime(event.target.value)
+										}
+									/>
+									<span className='text-gray-500'>to</span>
+									<input
+										className='px-2 py-1 border border-gray-400 rounded ml-2 flex-grow'
+										type='datetime-local'
+										value={endTime}
+										onChange={(event) =>
+											setEndTime(event.target.value)
+										}
+									/>
+								</div>
+								<button
+									className='bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline'
+									onClick={filterLogs}
+								>
+									Filter ({filteredLogs.length})
+								</button>
 							</div>
-							<table className='min-w-full divide-y divide-gray-200'>
+							<table className='min-w-full divide-y divide-gray-200 shadow overflow-hidden border-b border-gray-200 sm:rounded-lg'>
 								<thead className='bg-gray-50'>
 									<tr>
 										<th
@@ -50,12 +84,6 @@ export default function Logs({ logs }) {
 											className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'
 										>
 											Source
-										</th>
-										<th
-											scope='col'
-											className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'
-										>
-											Message
 										</th>
 										<th
 											scope='col'
@@ -69,35 +97,50 @@ export default function Logs({ logs }) {
 										>
 											Timestamp
 										</th>
+										<th
+											scope='col'
+											className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'
+										>
+											Data
+										</th>
 									</tr>
 								</thead>
 								<tbody className='bg-white divide-y divide-gray-200'>
-									{filteredLogs.map((log) => (
-										<tr key={log._id}>
-											<td className='px-6 py-4 whitespace-nowrap'>
-												<div className='text-sm text-gray-900'>
-													{log.source || '-'}
-												</div>
-											</td>
-											<td className='px-6 py-4 whitespace-nowrap'>
-												<div className='text-sm text-gray-900'>
-													{log.message || '-'}
-												</div>
-											</td>
-											<td className='px-6 py-4 whitespace-nowrap'>
-												<div className='text-sm text-gray-900'>
-													{log.level || '-'}
-												</div>
-											</td>
-											<td className='px-6 py-4 whitespace-nowrap'>
-												<div className='text-sm text-gray-900'>
-													{log.time ||
-														log.timestamp ||
-														'-'}
-												</div>
-											</td>
-										</tr>
-									))}
+									{filteredLogs
+										.sort(
+											(a, b) =>
+												new Date(b.timestamp) -
+												new Date(a.timestamp)
+										)
+										.map((log) => (
+											<tr key={log._id}>
+												<td className='px-6 py-4 whitespace-nowrap'>
+													<div className='text-sm text-gray-900 max-w-md break-all'>
+														{log.source || '-'}
+													</div>
+												</td>
+												<td className='px-6 py-4 whitespace-nowrap'>
+													<div className='text-sm text-gray-900 max-w-md break-all'>
+														{log.level || '-'}
+													</div>
+												</td>
+												<td className='px-6 py-4 whitespace-nowrap'>
+													<div className='text-sm text-gray-900 max-w-md break-all'>
+														{log.time ||
+															log.timestamp ||
+															'-'}
+													</div>
+												</td>
+												<td className='px-6 py-4 whitespace-nowrap'>
+													<div className='text-sm text-gray-900 max-w-md overflow-auto break-all'>
+														{JSON.stringify(
+															log.allQueryParams ||
+																{}
+														)}
+													</div>
+												</td>
+											</tr>
+										))}
 								</tbody>
 							</table>
 						</div>
