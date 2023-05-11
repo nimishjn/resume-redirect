@@ -1,6 +1,7 @@
 import Head from 'next/head';
 import { MongoClient } from 'mongodb';
 import { dateFormatter } from '../utils/dateFormatter';
+import Link from 'next/link';
 
 export default function Home() {
 	return (
@@ -9,7 +10,10 @@ export default function Home() {
 				<title>{"Nimish Jain's Resume"}</title>
 			</Head>
 			<main>
-				If it does not redirect, <a href='/api/getPDF'>Click here!</a>
+				If it does not redirect,{' '}
+				<Link href='/api/getPDF'>
+					<a>Click here!</a>
+				</Link>
 			</main>
 		</div>
 	);
