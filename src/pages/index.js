@@ -55,7 +55,7 @@ export async function getServerSideProps(context) {
 
 	return {
 		redirect: {
-			destination: '/api/getPDF',
+			destination: process.env.DRIVE_LINK,
 			permanent: false,
 		},
 		props: {},
